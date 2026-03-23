@@ -1,2 +1,1 @@
-Flask
-gunicorn
+echo -e "Flask\ngunicorn" > requirements.txt
