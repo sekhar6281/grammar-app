@@ -1,15 +1,10 @@
-cat <<EOF > render-build.sh
 #!/usr/bin/env bash
 # exit on error
 set -o errexit
 
-# 1. Install dependencies into the current environment
+# 1. Force use of the environment's python to install everything
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python -m pip install Flask==3.1.3 gunicorn==25.1.0
 
-# 2. Force install gunicorn again just to be safe
-python -m pip install gunicorn
-
-# 3. Initialize your database
+# 2. Initialize your database
 python app.py
-EOF
