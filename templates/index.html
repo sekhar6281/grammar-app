@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Visual Grammar</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="header"><h1>Visual English Guide</h1></div>
+    <div class="container">
+        <div class="grid">
+            {% for t in topics %}
+            <div class="card" onclick="location.href='/lesson/{{t[0]}}'" style="border-top: 8px solid {{t[4]}}">
+                <h2 style="color: {{t[4]}}">{{t[1]}}</h2>
+                <p>Learn with Animations</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

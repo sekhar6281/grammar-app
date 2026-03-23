@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ t[1] }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="header" style="background: {{t[4]}}"><h1>{{ t[1] }}</h1></div>
+    <div class="container">
+        <div id="lesson-view">
+            <button class="btn-main" onclick="location.href='/'">Back to Home</button>
+            <div style="background:white; padding:20px; border-radius:15px; margin-top:15px;">
+                <h3>Definition</h3>
+                <p style="white-space: pre-wrap;">{{ t[2] }}</p>
+                
+                <h3>Examples</h3>
+                <p style="white-space: pre-wrap;"><i>{{ t[3] }}</i></p>
+            </div>
+
+            <div class="viz-box" id="viz"></div>
+            <div id="ctrls" style="text-align:center;"></div>
+            <h2 id="example-disp" style="text-align:center; color:{{t[4]}}; margin-top:20px;"></h2>
+
+            <button class="btn-main" style="width:100%; background:{{t[4]}}; color:white; margin-top:30px;" onclick="startQuiz()">Start Quiz →</button>
+        </div>
+
+        <div id="quiz-view" style="display:none; background:white; padding:30px; border-radius:20px;">
+            <button class="btn-main" onclick="location.href='/lesson/{{t[0]}}'">Back to Lesson</button>
+            <h3 id="q-text" style="margin-top:20px;"></h3>
+            <div id="q-options"></div>
+            <div id="feedback" class="feedback-text"></div>
+            <button id="next-btn" class="btn-main" style="display:none; margin-top:20px; background:#333; color:white;" onclick="showQ()">Next Question</button>
+        </div>
+    </div>
+
+    <script>
+        const topic = "{{ t[0] }}";
+        const viz = document.getElementById('viz');
+        const ctrls = document.getElementById('ctrls');
+        const disp = document.getElementById('example-disp');
+
+        // --- ANIMATIONS ---
+        if (topic === 'tenses') {
+            viz.innerHTML = '<div class="line"></div><div id="marker" class="marker">PRESENT</div>';
+            const marker = document.getElementById('marker');
+            const data = {
+                'PAST': {l:'10%', e:'I <b>went</b> yesterday.'},
+                'PRESENT': {l:'50%', e:'I <b>go</b> now.'},
+                'FUTURE': {l:'90%', e:'I <b>will go</b> tomorrow.'}
+            };
+            Object.keys(data).forEach(k => {
+                let b = document.createElement('button'); b.innerText = k; b.className='btn-main'; b.style.margin="5px";
+                b.onclick = () => { marker.style.left=data[k].l; marker.innerText=k; disp.innerHTML=data[k].e; };
+                ctrls.appendChild(b);
+            });
+        } 
+        
+        else if (topic === 'prepositions') {
+            viz.innerHTML = '<div style="width:100px; height:100px; background:#8d6e63; border-radius:10px;"></div><div id="ball" class="marker" style="width:40px; height:40px;">BALL</div>';
+            const ball = document.getElementById('ball');
+            const data = {
+                'ON': {t:'30px', e:'The ball is <b>on</b> the box.'},
+                'IN': {t:'100px', e:'The ball is <b>in</b> the box.'},
+                'UNDER': {t:'170px', e:'The ball is <b>under</b> the box.'}
+            };
+            Object.keys(data).forEach(k => {
+                let b = document.createElement('button'); b.innerText = k; b.className='btn-main'; b.style.margin="5px";
+                b.onclick = () => { ball.style.top=data[k].t; ball.innerText=k; disp.innerHTML=data[k].e; };
+                ctrls.appendChild(b);
+            });
+        }
+
+        else if (topic === 'voice') {
+            viz.innerHTML = '<h2 id="v-txt" style="font-weight:bold;">The Boy ate the Apple</h2>';
+            const data = {
+                'ACTIVE': 'The Boy (Subject) ate the Apple.',
+                'PASSIVE': 'The Apple was eaten by the Boy.'
+            };
+            Object.keys(data).forEach(k => {
+                let b = document.createElement('button'); b.innerText = k; b.className='btn-main'; b.style.margin="5px";
+                b.onclick = () => { document.getElementById('v-txt').innerText = data[k]; disp.innerText = k + " Voice"; };
+                ctrls.appendChild(b);
+            });
+        }
+
+        else if (topic === 'parts') {
+            // Updated sentence to include all 8 parts of speech
+            viz.innerHTML = '<h2 id="p-txt" style="line-height:1.8;">The <span id="adj">happy</span> <span id="noun">dog</span> <span id="adv">quickly</span> <span id="verb">runs</span> <span id="prep">under</span> the fence, <span id="conj">and</span> <span id="int">wow</span>, <span id="pron">it</span> is fast!</h2>';
+            
+            const data = {
+                'Noun': {id: 'noun', d: '<b>Noun:</b> Names a person, place, or thing (dog).'},
+                'Pronoun': {id: 'pron', d: '<b>Pronoun:</b> Replaces a noun (it).'},
+                'Verb': {id: 'verb', d: '<b>Verb:</b> Shows action or state (runs).'},
+                'Adjective': {id: 'adj', d: '<b>Adjective:</b> Describes a noun (happy).'},
+                'Adverb': {id: 'adv', d: '<b>Adverb:</b> Modifies a verb (quickly).'},
+                'Preposition': {id: 'prep', d: '<b>Preposition:</b> Shows relationship (under).'},
+                'Conjunction': {id: 'conj', d: '<b>Conjunction:</b> Joins words or clauses (and).'},
+                'Interjection': {id: 'int', d: '<b>Interjection:</b> Expresses strong emotion (wow).'}
+            };
+
+            Object.keys(data).forEach(k => {
+                let b = document.createElement('button'); 
+                b.innerText = k; 
+                b.className='btn-main'; 
+                b.style.margin="5px";
+                b.style.fontSize="12px"; 
+                
+                b.onclick = () => { 
+                    disp.innerHTML = data[k].d;
+                    // Reset all styles
+                    const spans = document.getElementById('p-txt').getElementsByTagName('span');
+                    for (let s of spans) {
+                        s.style.color = "black";
+                        s.style.textDecoration = "none";
+                        s.style.fontWeight = "normal";
+                    }
+                    // Highlight target
+                    const target = document.getElementById(data[k].id);
+                    target.style.color = "{{t[4]}}";
+                    target.style.textDecoration = "underline";
+                    target.style.fontWeight = "bold";
+                };
+                ctrls.appendChild(b);
+            });
+        }
+
+        // --- QUIZ ENGINE ---
+        let questions = []; let cur = 0; let score = 0;
+
+        async function startQuiz() {
+            const res = await fetch(`/api/questions/${topic}`);
+            questions = await res.json();
+            document.getElementById('lesson-view').style.display = 'none';
+            document.getElementById('quiz-view').style.display = 'block';
+            showQ();
+        }
+
+        function showQ() {
+            if (cur >= questions.length) {
+                document.getElementById('q-text').innerText = `Final Score: ${score}/${questions.length}`;
+                document.getElementById('q-options').innerHTML = `<button class="btn-main" style="width:100%; background:green; color:white;" onclick="location.href='/'">Back to Home</button>`;
+                document.getElementById('next-btn').style.display = 'none';
+                return;
+            }
+            const q = questions[cur];
+            document.getElementById('q-text').innerText = q.q;
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('feedback').style.display = 'none';
+            const optDiv = document.getElementById('q-options');
+            optDiv.innerHTML = '';
+
+            q.o.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    const allBtns = optDiv.querySelectorAll('.option-btn');
+                    allBtns.forEach(b => b.disabled = true);
+                    const feed = document.getElementById('feedback');
+                    feed.style.display = 'block';
+                    
+                    if (i === q.a) {
+                        btn.classList.add('correct');
+                        feed.innerText = "Correct! ✨";
+                        feed.style.color = "green";
+                        score++;
+                    } else {
+                        btn.classList.add('wrong');
+                        allBtns[q.a].classList.add('correct');
+                        feed.innerText = "Incorrect! ❌";
+                        feed.style.color = "red";
+                    }
+                    document.getElementById('next-btn').style.display = 'block';
+                    cur++;
+                };
+                optDiv.appendChild(btn);
+            });
+        }
+    </script>
+</body>
+</html>
