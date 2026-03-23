@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify
 import sqlite3
+import os
 
 app = Flask(__name__)
 
@@ -101,6 +102,13 @@ def get_questions(topic_key):
     conn.close()
     return jsonify([{"q": r[0], "o": r[1].split(','), "a": r[2]} for r in rows])
 
+# --- UPDATED START LOGIC FOR RENDER ---
 if __name__ == '__main__':
+    # Initialize the database
     init_db()
-    app.run(debug=True)
+    
+    # Get port from environment variable (Render) or default to 5000 (Local)
+    port = int(os.environ.get("PORT", 5000))
+    
+    # Use 0.0.0.0 to make the server accessible externally
+    app.run(host='0.0.0.0', port=port)
