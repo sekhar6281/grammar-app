@@ -2,9 +2,9 @@
 # exit on error
 set -o errexit
 
-# 1. Force use of the environment's python to install everything
 python -m pip install --upgrade pip
-python -m pip install Flask==3.1.3 gunicorn==25.1.0
+python -m pip install -r requirements.txt
 
-# 2. Initialize your database
-python app.py
+# This runs your script but we need it to stop after init_db
+# We will use a python one-liner to just call the function
+python -c "from app import init_db; init_db()"
