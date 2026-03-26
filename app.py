@@ -7,6 +7,7 @@ app = Flask(__name__)
 def init_db():
     conn = sqlite3.connect('grammar.db')
     cursor = conn.cursor()
+    # Clean start: drop existing tables to ensure the latest data is loaded
     cursor.execute('DROP TABLE IF EXISTS topics')
     cursor.execute('DROP TABLE IF EXISTS questions')
     
@@ -17,30 +18,30 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT, topic_key TEXT, 
         question TEXT, options TEXT, answer INTEGER)''')
 
-    # UPDATED: Only "Parts of Speech" changed with 1-line definitions and examples below
+    # Content for the 4 modules
     topics = [
         ('tenses', 
          'Verb Tenses', 
-         'Tenses indicate the time of an action or state of being. They are categorized into Past, Present, and Future, each having simple, continuous, perfect, and perfect continuous forms.', 
-         'Past Simple: I walked to school. | Present Continuous: I am walking now. | Future Simple: I will walk tomorrow.', 
+         'Tenses indicate the time of an action. They are categorized into Past, Present, and Future.', 
+         'Past: I walked. | Present: I walk. | Future: I will walk.', 
          '#2196F3'),
         
         ('prepositions', 
          'Prepositions', 
-         'A preposition is a word used to link nouns, pronouns, or phrases to other words within a sentence. They act to connect the people, objects, time and locations of a sentence.', 
-         'Place: The book is ON the table. | Time: We met AT noon. | Direction: She walked INTO the room.', 
+         'Words used to link nouns to other words, showing relationship in space or time.', 
+         'On the table, At noon, Under the bridge.', 
          '#FF9800'),
         
         ('voice', 
          'Active & Passive', 
-         'Voice describes the relationship between the action and the participants. In Active voice, the subject performs the action. In Passive voice, the subject receives the action, often using "to be" + past participle.', 
-         'Active: The chef prepared the meal. | Passive: The meal was prepared by the chef.', 
+         'Active voice focuses on the doer. Passive voice focuses on the action being received.', 
+         'Active: The chef cooked. | Passive: The meal was cooked by the chef.', 
          '#4CAF50'),
         
         ('parts', 
          'The 8 Parts of Speech', 
-         '1. NOUN: A part of speech that names a person, place, thing, idea, quality, or action. They function as subjects or objects in a sentence.\nExamples: City, Paris, Love, Team, Teacher\n\n2. PRONOUN: A word that functions as a replacement for a noun or noun phrase.\nExamples: He, She, They, It, We\n\n3. VERB: A word used to describe an action, state, or occurrence.\nExamples: Run, Speak, Think, Is, Believe\n\n4. ADJECTIVE: A word that modifies or describes a noun or pronoun.\nExamples: Blue, Tall, Happy, Fast, Intelligent\n\n5. ADVERB: A word that modifies a verb, an adjective, or another adverb.\nExamples: Quickly, Very, Yesterday, Well, Often\n\n6. PREPOSITION: A word showing the relationship of a noun to another word in the sentence.\nExamples: In, On, Under, Between, Through\n\n7. CONJUNCTION: A word used to connect clauses or sentences or to coordinate words.\nExamples: And, But, Or, Because, Although\n\n8. INTERJECTION: An abrupt remark or exclamation used to express strong emotion.\nExamples: Wow, Ouch, Hey, Oops, Oh', 
-         'Click "Start Quiz" to test your knowledge of these 8 parts!', 
+         '1. NOUN: Names a person, place, thing, or idea.\n2. PRONOUN: Replaces a noun.\n3. VERB: Shows action.\n4. ADJECTIVE: Describes a noun.\n5. ADVERB: Modifies a verb.\n6. PREPOSITION: Shows relationship.\n7. CONJUNCTION: Joins words.\n8. INTERJECTION: Expresses emotion.', 
+         'Click "Start Quiz" to test your knowledge!', 
          '#9C27B0')
     ]
     cursor.executemany('INSERT INTO topics VALUES (?,?,?,?,?)', topics)
@@ -102,13 +103,15 @@ def get_questions(topic_key):
     conn.close()
     return jsonify([{"q": r[0], "o": r[1].split(','), "a": r[2]} for r in rows])
 
-# --- UPDATED START LOGIC FOR RENDER ---
 if __name__ == '__main__':
-    # Initialize the database
-    init_db()
-    
-    # Get port from environment variable (Render) or default to 5000 (Local)
+    # SELF-HEALING LOGIC: Detects malformed database and fixes it automatically
+    try:
+        init_db()
+    except sqlite3.DatabaseError:
+        if os.path.exists('grammar.db'):
+            os.remove('grammar.db')
+        init_db()
+        print("Database repaired successfully!")
+
     port = int(os.environ.get("PORT", 5000))
-    
-    # Use 0.0.0.0 to make the server accessible externally
     app.run(host='0.0.0.0', port=port)
